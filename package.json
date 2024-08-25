@@ -6,7 +6,7 @@
     "dev": "bunx --bun vite --port 5175",
     "build": "vite build",
     "preview": "vite preview",
-    "up": "bunx --bun vite build && wrangler pages deploy ./dist --branch main --project-name remove-bg"
+    "up": "TARGET=bannerify bunx --bun vite build && wrangler pages deploy ./dist --branch main --project-name remove-bg"
   },
   "dependencies": {
     "@huggingface/transformers": "3.0.0-alpha.9",
