@@ -7,6 +7,8 @@ import PQueue from "p-queue"
 env.allowLocalModels = false
 // Proxy the WASM backend to prevent the UI from freezing
 env.backends.onnx.wasm.proxy = true
+// env.backends.onnx.wasm.wasmPaths = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.17.1/dist/"
+// env.backends.onnx.wasm.numThreads = 1
 
 const modelPromise = AutoModel.from_pretrained("briaai/RMBG-1.4", {
   // Do not require config.json to be present in the repository
@@ -31,6 +33,12 @@ const processorPromise = AutoProcessor.from_pretrained("briaai/RMBG-1.4", {
   },
 })
 
+modelPromise.then(() => {
+  console.log("model loaded")
+})
+processorPromise.then(() => {
+  console.log("processor loaded")
+})
 export async function removeBg(url: string) {
   const image = await RawImage.fromURL(url)
 

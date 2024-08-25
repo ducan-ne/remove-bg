@@ -16,40 +16,12 @@ import { Spinner } from "@nextui-org/react"
 import { proxy, useSnapshot } from "valtio"
 import { AnimatePresence, motion } from "framer-motion"
 import MotionNumber from "motion-number"
-import workerUrl from "./ai?worker&url"
-import { createBirpc } from "birpc"
-import type { ServerFunctions } from "./ai"
 import PQueue from "p-queue"
+import { removeBg } from "./ai"
 
 // classes
 const tableCls = table()
 const linkCls = link()
-
-const js = `import ${JSON.stringify(new URL(workerUrl, import.meta.url))}`
-const blob = new Blob([js], { type: "application/javascript" })
-function createWorker(
-  onProgress: (progress: number) => void,
-) {
-  const objURL = URL.createObjectURL(blob)
-  const worker = new Worker(new URL(objURL), { type: "module" })
-  worker.addEventListener("error", (e) => {
-    URL.revokeObjectURL(objURL)
-  })
-  const rpc = createBirpc<ServerFunctions>(
-    {},
-    {
-      post: (data) => worker.postMessage(data),
-      on: (data) => worker.addEventListener("message", (v) => data(v.data)),
-      timeout: 60e3 * 5,
-    },
-  )
-  worker.addEventListener("message", (e) => {
-    if (e.data.type === "progress") {
-      onProgress(e.data.progress)
-    }
-  })
-  return [rpc, () => worker.terminate()] as const
-}
 
 type Image = {
   status: "done" | "loading" | "error"
@@ -100,11 +72,8 @@ const Converter = () => {
           }
           row.duration = Date.now() - start
         }, 300)
-        const [rpc, destroy] = createWorker((progress) => {
-          row.progress = progress
-        })
         try {
-          const imageUrl = URL.createObjectURL(await rpc.removeBg(row.previewUrl))
+          const imageUrl = URL.createObjectURL(await removeBg(row.previewUrl))
 
           // state.convertedImages[index - 1].previewUrl = previewUrl
           row.previewUrl = imageUrl
@@ -115,7 +84,7 @@ const Converter = () => {
           console.log("Error:", e)
           row.status = "error"
         } finally {
-          destroy()
+          // destroy()
         }
       })
     }
