@@ -1,7 +1,4 @@
-import { RawImage } from "@huggingface/transformers"
-import { AutoModel, AutoProcessor, env } from "@huggingface/transformers"
-import { createBirpc } from "birpc"
-import PQueue from "p-queue"
+import { AutoModel, AutoProcessor, env, RawImage } from "@huggingface/transformers"
 import { toast } from "sonner"
 
 // Since we will download the model from the Hugging Face Hub, we can skip the local model check
@@ -41,7 +38,6 @@ processorPromise.then(() => {
   console.log("processor loaded")
 })
 export async function removeBg(url: string) {
-  
   const image = await RawImage.fromURL(url)
 
   // Set container width and height depending on the image aspect ratio
@@ -51,52 +47,46 @@ export async function removeBg(url: string) {
   let loadTimeout = setTimeout(() => {
     toast.info("First time loading the model, this might take a while...")
   }, 3e3)
-  const processor = await processorPromise
-  const { pixel_values } = await processor(image)
-  
-  // Predict alpha matte
-  const model = await modelPromise
-  const { output } = await model({ input: pixel_values })
-  clearTimeout(loadTimeout)
-  
+  try {
+    const processor = await processorPromise
+    const { pixel_values } = await processor(image)
 
-  // Resize mask back to original size
-  const mask = await RawImage.fromTensor(output[0].mul(255).to("uint8")).resize(
-    image.width,
-    image.height,
-  )
+    // Predict alpha matte
+    const model = await modelPromise
+    const { output } = await model({ input: pixel_values })
+    clearTimeout(loadTimeout)
 
-  // Create new canvas
-  const canvas = document.createElement("canvas")
-  canvas.width = image.width
-  canvas.height = image.height
-  const ctx = canvas.getContext("2d")!
-  
+    // Resize mask back to original size
+    const mask = await RawImage.fromTensor(output[0].mul(255).to("uint8")).resize(
+      image.width,
+      image.height,
+    )
 
-  // Draw original image output to canvas
-  ctx.drawImage(image.toCanvas(), 0, 0)
+    // Create new canvas
+    const canvas = document.createElement("canvas")
+    canvas.width = image.width
+    canvas.height = image.height
+    const ctx = canvas.getContext("2d")!
 
-  // Update alpha channel
-  const pixelData = ctx.getImageData(0, 0, image.width, image.height)
-  for (let i = 0; i < mask.data.length; ++i) {
-    pixelData.data[4 * i + 3] = mask.data[i]
+    // Draw original image output to canvas
+    ctx.drawImage(image.toCanvas(), 0, 0)
+
+    // Update alpha channel
+    const pixelData = ctx.getImageData(0, 0, image.width, image.height)
+    for (let i = 0; i < mask.data.length; ++i) {
+      pixelData.data[4 * i + 3] = mask.data[i]
+    }
+    ctx.putImageData(pixelData, 0, 0)
+
+    return canvas.toDataURL()
+  } catch (e) {
+    console.log("Error:", e)
+    throw e
+  } finally {
+    clearTimeout(loadTimeout)
   }
-  ctx.putImageData(pixelData, 0, 0)
-
-  return canvas.toDataURL()
 }
 
 export type ServerFunctions = {
   removeBg: typeof removeBg
 }
-
-
-createBirpc<{}, ServerFunctions>(
-  {
-    removeBg,
-  },
-  {
-    post: (data) => postMessage(data),
-    on: (data) => addEventListener("message", (v) => data(v.data)),
-  },
-)

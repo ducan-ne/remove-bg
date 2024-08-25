@@ -20,6 +20,7 @@ import MotionNumber from "motion-number"
 import PQueue from "p-queue"
 import { BlobWriter, BlobReader, ZipWriter } from "@zip.js/zip.js"
 import { removeBg } from "./ai"
+import { useEffect } from "react"
 
 // classes
 const tableCls = table()
@@ -47,6 +48,21 @@ const queue = new PQueue({ concurrency: 1 })
 
 const Converter = () => {
   const { processedImages } = useSnapshot(state)
+
+  useEffect(() => {
+    const handler = async (e: ClipboardEvent) => {
+      const items = await navigator.clipboard.read()
+      for (const item of items) {
+        if (item.types.find((type) => type.includes("image/"))) {
+          const blob = await item.getType(item.types[0])
+          const file = new File([blob], "image.png", { type: item.types[0] })
+          onFiles([file])
+        }
+      }
+    }
+    document.addEventListener("paste", handler)
+    return () => document.removeEventListener("paste", handler)
+  }, [])
 
   const onFiles = (files: File[]) => {
     for (const file of files) {
@@ -90,7 +106,7 @@ const Converter = () => {
   }
 
   return (
-    <section style={{ width: "100%", height: "100%" }}>
+    <section id="remove-bg" style={{ width: "100%", height: "100%" }}>
       <div className="flex gap-4 flex-col items-center light">
         <Toaster position="top-center" className="fixed" />
         <DropZone

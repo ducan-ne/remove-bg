@@ -8,6 +8,11 @@ export default defineConfig({
     react(),
     cssInject(),
   ],
+  resolve: process.env.NODE_ENV === "production" ? {
+    alias: {
+      '@huggingface/transformers': 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.0-alpha.9'
+    }
+  } : {},
   build: {
     target: "esnext",
     rollupOptions: {
