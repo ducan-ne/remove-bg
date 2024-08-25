@@ -20,6 +20,9 @@ importers:
       '@zip.js/zip.js':
         specifier: ^2.7.51
         version: 2.7.51
+      detect-gpu:
+        specifier: ^5.0.45
+        version: 5.0.45
       framer-motion:
         specifier: ^11.3.24
         version: 11.3.30(react-dom@18.3.0-canary-b30030471-20240117(react@18.3.0-canary-b30030471-20240117))(react@18.3.0-canary-b30030471-20240117)
@@ -2150,6 +2153,9 @@ packages:
     peerDependencies:
       valtio: '*'
 
+  detect-gpu@5.0.45:
+    resolution: {integrity: sha512-59oJS71ODAVPGMjBfyHPPOnM9efOhJpOliQZ8I1UG4p440PjYCVYWgAgY+BiO3JPe/BXbRzPAn+XbVqIESXkDQ==}
+
   detect-libc@2.0.3:
     resolution: {integrity: sha512-bwy0MGW55bG41VqxxypOsdSdGqLwXPI/focwgTYCFMbdUiBAxLg9CFzG08sz2aqzknwiX7Hkl0bQENjg8iLByw==}
     engines: {node: '>=8'}
@@ -2879,6 +2885,9 @@ packages:
         optional: true
       terser:
         optional: true
+
+  webgl-constants@1.1.1:
+    resolution: {integrity: sha512-LkBXKjU5r9vAW7Gcu3T5u+5cvSvh5WwINdr0C+9jpzVB41cjQAP5ePArDtk/WHYdVj0GefCgM73BA7FlIiNtdg==}
 
   which@2.0.2:
     resolution: {integrity: sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA==}
@@ -6053,6 +6062,10 @@ snapshots:
     dependencies:
       valtio: 1.13.2(@types/react@18.2.48)(react@18.3.0-canary-b30030471-20240117)
 
+  detect-gpu@5.0.45:
+    dependencies:
+      webgl-constants: 1.1.1
+
   detect-libc@2.0.3: {}
 
   detect-node-es@1.1.0: {}
@@ -6836,6 +6849,8 @@ snapshots:
     optionalDependencies:
       '@types/node': 22.5.0
       fsevents: 2.3.3
+
+  webgl-constants@1.1.1: {}
 
   which@2.0.2:
     dependencies:

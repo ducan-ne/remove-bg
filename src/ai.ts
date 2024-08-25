@@ -1,5 +1,6 @@
 import { AutoModel, AutoProcessor, env, RawImage } from "@huggingface/transformers"
 import { toast } from "sonner"
+import { getGPUTier } from 'detect-gpu';
 
 // Since we will download the model from the Hugging Face Hub, we can skip the local model check
 env.allowLocalModels = false
@@ -8,11 +9,12 @@ env.backends.onnx.wasm.proxy = true
 // env.backends.onnx.wasm.wasmPaths = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.17.1/dist/"
 // env.backends.onnx.wasm.numThreads = 1
 
+const gpuTier = await getGPUTier();
 const modelPromise = AutoModel.from_pretrained("briaai/RMBG-1.4", {
   // Do not require config.json to be present in the repository
   config: { model_type: "custom" },
-  device: "webgpu",
-  dtype: "fp32",
+  device: gpuTier ? "webgpu" : "auto",
+  dtype: gpuTier ? "fp1632": undefined as any,
 })
 
 const processorPromise = AutoProcessor.from_pretrained("briaai/RMBG-1.4", {

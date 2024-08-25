@@ -13,6 +13,7 @@
     "@nextui-org/react": "^2.4.6",
     "@nextui-org/theme": "^2.2.9",
     "@zip.js/zip.js": "^2.7.51",
+    "detect-gpu": "^5.0.45",
     "framer-motion": "^11.3.24",
     "lucide-react": "^0.427.0",
     "motion-number": "^0.1.6",
