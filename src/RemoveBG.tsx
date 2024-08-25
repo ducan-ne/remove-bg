@@ -92,7 +92,7 @@ const Converter = () => {
   return (
     <section style={{ width: "100%", height: "100%" }}>
       <div className="flex gap-4 flex-col items-center light">
-        <Toaster position="top-center" />
+        <Toaster position="top-center" className="fixed" />
         <DropZone
           className={`w-full flex flex-col items-center justify-center drop-target:scale-125 transition-all`}
           onDrop={async (e) => {
