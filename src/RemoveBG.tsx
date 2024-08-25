@@ -51,14 +51,20 @@ const Converter = () => {
 
   useEffect(() => {
     const handler = async (e: ClipboardEvent) => {
-      const items = await navigator.clipboard.read()
-      for (const item of items) {
-        if (item.types.find((type) => type.includes("image/"))) {
-          const blob = await item.getType(item.types[0])
-          const file = new File([blob], "image.png", { type: item.types[0] })
-          onFiles([file])
+      if (!e.clipboardData) {
+        return
+      }
+      e.preventDefault()
+      const files = [] as File[]
+      for (const item of e.clipboardData.items) {
+        if (item.kind === "file" && item.type.includes("image/")) {
+          const file = item.getAsFile()
+          if (file) {
+            files.push(file)
+          }
         }
       }
+      onFiles(files)
     }
     document.addEventListener("paste", handler)
     return () => document.removeEventListener("paste", handler)

@@ -10,12 +10,15 @@ env.backends.onnx.wasm.proxy = true
 // env.backends.onnx.wasm.numThreads = 1
 
 const gpuTier = await getGPUTier();
-const modelPromise = AutoModel.from_pretrained("briaai/RMBG-1.4", {
+const modelSettings: Parameters<typeof AutoModel.from_pretrained>[1] = {
   // Do not require config.json to be present in the repository
   config: { model_type: "custom" },
-  device: gpuTier ? "webgpu" : "auto",
-  dtype: gpuTier ? "fp1632": undefined as any,
-})
+}
+if (gpuTier) {
+  modelSettings.device = "webgpu"
+  modelSettings.dtype = "fp32"
+}
+const modelPromise = AutoModel.from_pretrained("briaai/RMBG-1.4", modelSettings)
 
 const processorPromise = AutoProcessor.from_pretrained("briaai/RMBG-1.4", {
   // Do not require config.json to be present in the repository
