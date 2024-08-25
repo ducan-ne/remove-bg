@@ -2,6 +2,7 @@ import { RawImage } from "@huggingface/transformers"
 import { AutoModel, AutoProcessor, env } from "@huggingface/transformers"
 import { createBirpc } from "birpc"
 import PQueue from "p-queue"
+import { toast } from "sonner"
 
 // Since we will download the model from the Hugging Face Hub, we can skip the local model check
 env.allowLocalModels = false
@@ -40,19 +41,24 @@ processorPromise.then(() => {
   console.log("processor loaded")
 })
 export async function removeBg(url: string) {
+  
   const image = await RawImage.fromURL(url)
 
   // Set container width and height depending on the image aspect ratio
   const ar = image.width / image.height
-  const [cw, ch] = ar > 720 / 480 ? [720, 720 / ar] : [480 * ar, 480]
 
   // Preprocess image
+  let loadTimeout = setTimeout(() => {
+    toast.info("First time loading the model, this might take a while...")
+  }, 3e3)
   const processor = await processorPromise
   const { pixel_values } = await processor(image)
-
+  
   // Predict alpha matte
   const model = await modelPromise
   const { output } = await model({ input: pixel_values })
+  clearTimeout(loadTimeout)
+  
 
   // Resize mask back to original size
   const mask = await RawImage.fromTensor(output[0].mul(255).to("uint8")).resize(
@@ -61,8 +67,11 @@ export async function removeBg(url: string) {
   )
 
   // Create new canvas
-  const canvas = new OffscreenCanvas(image.width, image.height)
+  const canvas = document.createElement("canvas")
+  canvas.width = image.width
+  canvas.height = image.height
   const ctx = canvas.getContext("2d")!
+  
 
   // Draw original image output to canvas
   ctx.drawImage(image.toCanvas(), 0, 0)
@@ -74,7 +83,7 @@ export async function removeBg(url: string) {
   }
   ctx.putImageData(pixelData, 0, 0)
 
-  return await canvas.convertToBlob()
+  return canvas.toDataURL()
 }
 
 export type ServerFunctions = {

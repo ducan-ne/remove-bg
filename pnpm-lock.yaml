@@ -20,6 +20,9 @@ importers:
       '@xenova/transformers':
         specifier: ^2.15.0
         version: 2.15.0
+      '@zip.js/zip.js':
+        specifier: ^2.7.51
+        version: 2.7.51
       birpc:
         specifier: ^0.2.17
         version: 0.2.17
@@ -2037,6 +2040,10 @@ packages:
 
   '@xenova/transformers@2.15.0':
     resolution: {integrity: sha512-e8pt+yLGSmwZnQR5Q/fq1NJ6fPr3+WKqxh/jF2PzfXFZ2KZsDdFQeCVlk8AnOADP4Aimlqy+Wp/xuws96/pX9A==}
+
+  '@zip.js/zip.js@2.7.51':
+    resolution: {integrity: sha512-RKHaebzZZgQkUuzb49/qweN69e8Np9AUZ9QygydDIrbG1njypSAKwkeqIVeuf2JVGBDyB7Z9HKvzPgYrSlv9gw==}
+    engines: {bun: '>=0.7.0', deno: '>=1.0.0', node: '>=16.5.0'}
 
   ansi-regex@4.1.1:
     resolution: {integrity: sha512-ILlv4k/3f6vfQ4OoP2AGvirOktlQ98ZEL1k9FaQjxa3L1abBgbuTDAdPOpvbGncC0BTVQrl+OM8xZGK6tWXt7g==}
@@ -6220,6 +6227,8 @@ snapshots:
       sharp: 0.32.6
     optionalDependencies:
       onnxruntime-node: 1.14.0
+
+  '@zip.js/zip.js@2.7.51': {}
 
   ansi-regex@4.1.1: {}
 

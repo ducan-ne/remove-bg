@@ -9,14 +9,16 @@ import {
   Table,
   TableBody,
   TableHeader,
+  type DirectoryDropItem,
   type FileDropItem,
 } from "react-aria-components"
-import { Toaster } from "sonner"
+import { toast, Toaster } from "sonner"
 import { Spinner } from "@nextui-org/react"
 import { proxy, useSnapshot } from "valtio"
 import { AnimatePresence, motion } from "framer-motion"
 import MotionNumber from "motion-number"
 import PQueue from "p-queue"
+import { BlobWriter, BlobReader, ZipWriter } from "@zip.js/zip.js"
 import { removeBg } from "./ai"
 
 // classes
@@ -35,17 +37,16 @@ type Image = {
 }
 
 const state = proxy<{
-  convertedImages: Array<Image>
+  processedImages: Array<Image>
 }>({
-  convertedImages: [],
+  processedImages: [],
 })
 
-
 // not sure why but it makes browser crash if
-const queue = new PQueue({concurrency: 1});
+const queue = new PQueue({ concurrency: 1 })
 
 const Converter = () => {
-  const { convertedImages } = useSnapshot(state)
+  const { processedImages } = useSnapshot(state)
 
   const onFiles = (files: File[]) => {
     for (const file of files) {
@@ -53,7 +54,7 @@ const Converter = () => {
         continue
       }
       queue.add(async function () {
-        const index = state.convertedImages.push({
+        const index = state.processedImages.push({
           status: "loading",
           originalSize: file.size,
           previewUrl: URL.createObjectURL(file),
@@ -64,7 +65,7 @@ const Converter = () => {
           progress: 0,
         })
         const start = Date.now()
-        const row = state.convertedImages[index - 1]
+        const row = state.processedImages[index - 1]
         const timer = setInterval(() => {
           if (row.status !== "loading") {
             clearInterval(timer)
@@ -73,9 +74,7 @@ const Converter = () => {
           row.duration = Date.now() - start
         }, 300)
         try {
-          const imageUrl = URL.createObjectURL(await removeBg(row.previewUrl))
-
-          // state.convertedImages[index - 1].previewUrl = previewUrl
+          const imageUrl = await removeBg(row.previewUrl)
           row.previewUrl = imageUrl
           row.downloadUrl = imageUrl
           row.status = "done"
@@ -91,7 +90,7 @@ const Converter = () => {
   }
 
   return (
-    <section id="image-converter" style={{ width: "100%", height: "100%" }}>
+    <section style={{ width: "100%", height: "100%" }}>
       <div className="flex gap-4 flex-col items-center light">
         <Toaster position="top-center" />
         <DropZone
@@ -120,14 +119,25 @@ const Converter = () => {
             </Button>
           </FileTrigger>
         </DropZone>
-        <p className="text-sm text-gray-500 mt-4">
-          Or upload a dictory
-        </p>
+        <p className="text-sm text-gray-500 mt-2">Or upload a directory</p>
         <DropZone
           className={`w-full flex flex-col items-center justify-center drop-target:scale-125 transition-all`}
           onDrop={async (e) => {
-            const files = e.items.filter((file) => file.kind === "file") as FileDropItem[]
-            onFiles(await Promise.all(files.map((file) => file.getFile())))
+            const files = e.items.filter((file) => file.kind === "directory") as DirectoryDropItem[]
+
+            onFiles(
+              (
+                await Promise.all(
+                  (
+                    await Promise.all(files.map((file) => Array.fromAsync(file.getEntries())))
+                  ).map((files) =>
+                    Promise.all(
+                      files.filter((file) => file.kind === "file").map((file) => file.getFile()),
+                    ),
+                  ),
+                )
+              ).flat(),
+            )
           }}
         >
           <FileTrigger
@@ -151,9 +161,33 @@ const Converter = () => {
           </FileTrigger>
         </DropZone>
         <p className="text-sm text-gray-500 mt-4">
-          Images are not uploaded to the server, they are converted directly in your browser.
+          Images are not uploaded to the server, they are processed directly in your browser.
         </p>
-        <Table aria-label="Converted images" className={tableCls.table()}>
+        <div className="flex flex-col items-end justify-end w-full gap-3">
+          <Button
+            className="appearance-none inline-flex hover:shadow-2xl transition-all duration-300 dragging:bg-gray-500 items-center group space-x-2.5 bg-black text-white py-2 px-2.5 rounded-md cursor-pointer w-fit text-sm"
+            onPress={async () => {
+              const zipWriter = new ZipWriter(new BlobWriter("application/zip"))
+              for (const image of processedImages) {
+                if (image.status === "done") {
+                  const response = await fetch(image.downloadUrl)
+                  const blob = await response.blob()
+                  await zipWriter.add(image.filename, new BlobReader(blob))
+                }
+              }
+              const zipBlob = await zipWriter.close()
+              const downloadUrl = URL.createObjectURL(zipBlob)
+              const a = document.createElement("a")
+              a.href = downloadUrl
+              a.download = "images.zip"
+              a.click()
+              URL.revokeObjectURL(downloadUrl)
+            }}
+          >
+            Download as zip
+          </Button>
+        </div>
+        <Table aria-label="Processed images" className={tableCls.table()}>
           <TableHeader className={tableCls.thead()}>
             <Column isRowHeader className={`${tableCls.th()} w-12 text-slate-800`}>
               No
@@ -165,7 +199,7 @@ const Converter = () => {
             <Column className={`${tableCls.th()} text-slate-800`}>Actions</Column>
           </TableHeader>
           <TableBody className={tableCls.tbody()}>
-            {convertedImages.map((image, index) => (
+            {processedImages.map((image, index) => (
               <Row className={tableCls.tr()} key={index}>
                 <Cell className={tableCls.td()}>{index + 1}</Cell>
                 <Cell className={tableCls.td()}>
@@ -176,7 +210,7 @@ const Converter = () => {
                       animate={{ y: [0, -10, 0] }}
                       transition={{ duration: 0.3 }}
                     >
-                      {image.status === "loading" && <Spinner label={`${image.progress}%`} />}
+                      {image.status === "loading" && <Spinner />}
                       {image.status === "done" && "Done"}
                       {image.status === "error" && <span className="text-red-500">Error</span>}
                     </motion.div>
@@ -201,24 +235,38 @@ const Converter = () => {
                 <Cell className={`${tableCls.td()}`}>
                   <MotionNumber
                     value={image.duration / 1000}
-                    format={{ style: "decimal", maximumFractionDigits: 2 }} // Intl.NumberFormat() options
-                    locales="en-US" // Intl.NumberFormat() locales
+                    format={{ style: "decimal", maximumFractionDigits: 2 }}
+                    locales="en-US"
                   />
                   s
                 </Cell>
-                <Cell className={tableCls.td()}>
-                  <Button
-                    className={link}
-                    isDisabled={image.status !== "done"}
-                    onPress={() => {
-                      const a = document.createElement("a")
-                      a.href = image.downloadUrl
-                      a.download = "image"
-                      a.click()
-                    }}
-                  >
-                    Download
-                  </Button>
+                <Cell className={`${tableCls.td()}`}>
+                  <div className="flex gap-2">
+                    <Button
+                      className={linkCls}
+                      isDisabled={image.status !== "done"}
+                      onPress={() => {
+                        const a = document.createElement("a")
+                        a.href = image.downloadUrl
+                        a.download = "image"
+                        a.click()
+                      }}
+                    >
+                      Download
+                    </Button>
+                    <Button
+                      className={linkCls}
+                      isDisabled={image.status !== "done"}
+                      onPress={async () => {
+                        const res = await fetch(image.downloadUrl)
+                        const blob = await res.blob()
+                        navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })])
+                        toast.success("Copied to clipboard")
+                      }}
+                    >
+                      Copy
+                    </Button>
+                  </div>
                 </Cell>
               </Row>
             ))}

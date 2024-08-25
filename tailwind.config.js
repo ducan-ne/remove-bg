@@ -10,7 +10,7 @@ export default {
   theme: {
     extend: {},
   },
-  important: '#image-converter',
+  important: '#remove-bg',
   plugins: [
     require('tailwindcss-react-aria-components'),
     nextui()

@@ -13,6 +13,7 @@
     "@nextui-org/react": "^2.4.6",
     "@nextui-org/theme": "^2.2.9",
     "@xenova/transformers": "^2.15.0",
+    "@zip.js/zip.js": "^2.7.51",
     "birpc": "^0.2.17",
     "buffer": "^6.0.3",
     "framer-motion": "^11.3.24",
