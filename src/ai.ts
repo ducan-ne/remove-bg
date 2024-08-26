@@ -14,7 +14,7 @@ const modelSettings: Parameters<typeof AutoModel.from_pretrained>[1] = {
   // Do not require config.json to be present in the repository
   config: { model_type: "custom" },
 }
-if (gpuTier?.fps) {
+if (gpuTier?.fps && !gpuTier?.isMobile) {
   modelSettings.device = "webgpu"
   modelSettings.dtype = "fp32"
 }
