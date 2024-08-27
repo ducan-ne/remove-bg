@@ -19,8 +19,10 @@ import { AnimatePresence, motion } from "framer-motion"
 import MotionNumber from "motion-number"
 import PQueue from "p-queue"
 import { BlobWriter, BlobReader, ZipWriter } from "@zip.js/zip.js"
-import { removeBg } from "./ai"
 import { useEffect } from "react"
+import Zoom from "react-medium-image-zoom"
+import { removeBg } from "./ai"
+import "react-medium-image-zoom/dist/styles.css"
 
 // classes
 const tableCls = table()
@@ -111,10 +113,26 @@ const Converter = () => {
     }
   }
 
+  const isError = processedImages.some((image) => image.status === "error")
+
   return (
     <section id="remove-bg" style={{ width: "100%", height: "100%" }}>
       <div className="flex gap-4 flex-col items-center light">
         <Toaster position="top-center" className="fixed" />
+        {isError && (
+        <div className="text-center text-sm text-gray-600 bg-gray-100 p-4 rounded-lg shadow-sm">
+          It appears that the image processing has encountered an issue. Please make sure WebGPU is
+          enabled in your browser and try again, or visit the{" "}
+          <a
+            href="https://github.com/duc-an/remove-bg#troubleshooting"
+            target="_blank"
+            className="text-blue-600 hover:underline"
+          >
+            Troubleshooting
+          </a>{" "}
+            section on GitHub for additional assistance.
+          </div>
+        )}
         <DropZone
           className={`w-full flex flex-col items-center justify-center drop-target:scale-125 transition-all`}
           onDrop={async (e) => {
@@ -240,19 +258,21 @@ const Converter = () => {
                 </Cell>
                 {/* <Cell className={tableCls.td()}>{image.filename}</Cell> */}
                 <Cell className={tableCls.td()}>
-                  <div
-                    style={{
-                      background:
-                        'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQBAMAAADt3eJSAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAGUExURb+/v////5nD/3QAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAUSURBVBjTYwABQSCglEENMxgYGAAynwRB8BEAgQAAAABJRU5ErkJggg==")',
-                    }}
-                    className="w-fit h-20"
-                  >
-                    <img
-                      src={image.previewUrl}
-                      alt="converted"
-                      className="h-20 object-scale-down rounded-lg"
-                    />
-                  </div>
+                  <Zoom>
+                    <div
+                      style={{
+                        background:
+                          'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQBAMAAADt3eJSAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAGUExURb+/v////5nD/3QAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAUSURBVBjTYwABQSCglEENMxgYGAAynwRB8BEAgQAAAABJRU5ErkJggg==")',
+                      }}
+                      className="w-fit h-20"
+                    >
+                      <img
+                        src={image.previewUrl}
+                        alt="converted"
+                        className="h-20 object-scale-down rounded-lg"
+                      />
+                    </div>
+                  </Zoom>
                 </Cell>
                 <Cell className={`${tableCls.td()}`}>
                   <MotionNumber
@@ -263,7 +283,7 @@ const Converter = () => {
                   s
                 </Cell>
                 <Cell className={`${tableCls.td()}`}>
-                  <div className="flex gap-2">
+                  <div className="flex gap-6">
                     <Button
                       className={linkCls}
                       isDisabled={image.status !== "done"}

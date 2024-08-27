@@ -36,21 +36,25 @@ const processorPromise = AutoProcessor.from_pretrained("briaai/RMBG-1.4", {
   },
 })
 
+let modelLoaded = false;
+let processorLoaded = false;
 modelPromise.then(() => {
+  modelLoaded = true;
   console.log("model loaded")
 })
 processorPromise.then(() => {
+  processorLoaded = true;
   console.log("processor loaded")
 })
 export async function removeBg(url: string) {
   const image = await RawImage.fromURL(url)
 
-  // Set container width and height depending on the image aspect ratio
-  const ar = image.width / image.height
 
   // Preprocess image
   let loadTimeout = setTimeout(() => {
-    toast.info("First time loading the model, this might take a while...")
+    if (!modelLoaded && !processorLoaded)  {
+      toast.info("First time loading the model, this might take a while...")
+    }
   }, 3e3)
   try {
     const processor = await processorPromise
