@@ -1,7 +1,5 @@
-import { lazy } from "react"
+import RemoveBG from "./RemoveBG.tsx"
 import "./build.css"
-
-const RemoveBG = lazy(() => import("./RemoveBG.tsx"))
 
 const App = () => {
   return (
