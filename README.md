@@ -38,7 +38,12 @@ Under the hood, it uses [transformer.js](https://huggingface.co/docs/transformer
 ## Troubleshooting
 
 ### Status "Error"
+
 Try to put the  flag "--enable-unsafe-webgpu --enable-features=Vulkan" to your Chrome flags, read more about it [here](https://github.com/gpuweb/gpuweb/wiki/Implementation-Status#chromium-chrome-edge-etc)
+
+### Crash the browser
+
+Some people reported that the browser crashed when they try to remove the background. This is a known issue and we are working on a fix. In the mean time, you can try to disable "WebGPU" in the "Experimental features" section in your browser's settings and try again (this will make the tool use CPU instead)
 
 ## Contributing
 
