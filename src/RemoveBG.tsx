@@ -212,7 +212,7 @@ const Converter = () => {
                 if (image.status === "done") {
                   const response = await fetch(image.downloadUrl)
                   const blob = await response.blob()
-                  await zipWriter.add(image.filename, new BlobReader(blob))
+                  await zipWriter.add(image.filename.replace(/\.[^/.]+$/, ".png"), new BlobReader(blob))
                 }
               }
               const zipBlob = await zipWriter.close()
