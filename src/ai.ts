@@ -52,7 +52,7 @@ export async function removeBg(url: string) {
 
   // Preprocess image
   let loadTimeout = setTimeout(() => {
-    if (!modelLoaded && !processorLoaded)  {
+    if (!modelLoaded)  {
       toast.info("First time loading the model, this might take a while...")
     }
   }, 3e3)
