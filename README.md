@@ -14,7 +14,7 @@
   <a href="https://twitter.com/duc__an">
     <img src="https://img.shields.io/twitter/follow/duc__an?style=flat&label=%40duc__an&logo=twitter&color=0bf&logoColor=fff" alt="Twitter" />
   </a>
-  <a href="https://news.ycombinator.com/item?id=41358490"><img src="https://img.shields.io/badge/Hacker%20News-200-%23FF6600" alt="Hacker News"></a>
+  <a href="https://news.ycombinator.com/item?id=41358490"><img src="https://img.shields.io/badge/Hacker%20News-270-%23FF6600" alt="Hacker News"></a>
 </p>
 
 <br/>
